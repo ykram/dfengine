@@ -131,20 +131,20 @@ static size_t Curl_HeaderCallback_f(void *ptr, size_t size, size_t nmemb, void *
 	char buf[1024];
 	char *c;
 
+	if (size*nmemb == 0) {
+		return 0;
+	}
+
 	// make a copy and remove the trailing crlf chars.
 	if (size*nmemb >= sizeof(buf)) {
 		Q_strncpyz(dl_error, "Curl_HeaderCallback_f() overflow.", sizeof(dl_error));
-		return (size_t)-1;
+		return 0;
 	}
 	Q_strncpyz(buf, ptr, size*nmemb+1);
+	buf[size*nmemb] = '\0';
 	c = buf +strlen(buf)-1;
 	while (c>buf && (*c == '\r' || *c == '\n')) {
-		*(c--) = 0;
-	}
-
-	// make sure it's not empty.
-	if (c <= buf) {
-		return size*nmemb;
+		*(c--) = '\0';
 	}
 
 	// verbose output
