@@ -87,6 +87,10 @@ static size_t Curl_WriteCallback_f(void *ptr, size_t size, size_t nmemb, void *s
 			Q_strncpyz(dl_error, "No pk3 returned - requested map is probably unknown.", sizeof(dl_error));
 			return 0;
 		}
+		if (strlen(path) == 0) {
+			Com_sprintf(dl_error, sizeof(dl_error), "The server did not return a pk3 filename.");
+			return 0;
+		}
 		// make sure the path doesn't have directory information.
 		for (c=path; *c; c++) {
 			if (*c == '\\' || *c == '/' || *c == ':') {
@@ -165,10 +169,11 @@ static size_t Curl_HeaderCallback_f(void *ptr, size_t size, size_t nmemb, void *
 	 * The actual filename will be validated later, when the transfer is started.
 	 */
 	if (!strncasecmp(buf, "content-disposition:", 20)) {
-		const char *c = strstr(buf, "filename=") +9;
-		if (c != (char*)9) {
+		const char *c = strstr(buf, "filename=");
+		if (c != NULL) {
 			const char *e;
 			char token=0;
+			c += 9; //filename=
 			if (*c == '"' || *c == '\'') {
 				token = *c++;
 			}
@@ -406,7 +411,9 @@ int DL_Begin( const char *map, qboolean nonblocking )
 	Com_sprintf(url, sizeof(url), "%s%s%s", url, curl_easy_escape(curl, map, 0), c+2);
 
 	// set a default destination filename; Content-Disposition headers will override.
-	Com_sprintf(path, sizeof(path), "%s.pk3", map);
+	//Com_sprintf(path, sizeof(path), "%s.pk3", map);
+	//there is no default filename
+	path[0] = '\0';
 
 	curl = curl_easy_init();
 	if (!curl) {
@@ -512,26 +519,29 @@ void DL_End( CURLcode res, CURLMcode resm )
 	if (f) {
 		FS_FCloseFile(f);
 		f = 0;
-		if (!*dl_error) {	// download succeeded
-			char dest[MAX_OSPATH];
-			Com_Printf("Download complete, restarting filesystem.\n");
-			Q_strncpyz(dest, path, strlen(path)-3);	// -4 +1 for the trailing \0
-			Q_strcat(dest, sizeof(dest), ".pk3");
-			if (!FS_SV_FileExists(dest)) {
-				FS_SV_Rename(path, dest);
-				FS_Restart(clc.checksumFeed);
-				if (dl_showmotd->integer && *motd) {
-					Com_Printf("Server motd: %s\n", motd);
+		if (strlen(path) > 4)
+		{
+			if (!*dl_error) {	// download succeeded
+				char dest[MAX_OSPATH];
+				Com_Printf("Download complete, restarting filesystem.\n");
+				Q_strncpyz(dest, path, strlen(path)-3);	// -4 +1 for the trailing \0
+				Q_strcat(dest, sizeof(dest), ".pk3");
+				if (!FS_SV_FileExists(dest)) {
+					FS_SV_Rename(path, dest);
+					FS_Restart(clc.checksumFeed);
+					if (dl_showmotd->integer && *motd) {
+						Com_Printf("Server motd: %s\n", motd);
+					}
+				} else {
+					// normally such errors should be caught upon starting the transfer. Anyway better do
+					// it here again - the filesystem might have changed, plus this may help contain some
+					// bugs / exploitable flaws in the code.
+					Com_Printf("Failed to copy downloaded file to its location - file already exists.\n");
+					FS_SV_RemoveFile(path);
 				}
 			} else {
-				// normally such errors should be caught upon starting the transfer. Anyway better do
-				// it here again - the filesystem might have changed, plus this may help contain some
-				// bugs / exploitable flaws in the code.
-				Com_Printf("Failed to copy downloaded file to its location - file already exists.\n");
 				FS_SV_RemoveFile(path);
 			}
-		} else {
-			FS_SV_RemoveFile(path);
 		}
 	}
 
