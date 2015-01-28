@@ -34,6 +34,36 @@ cvar_t		*ch_recordMessage;	// Cgg
 
 /*
 ================
+SCR_FillAngle, SCR_MarkAngle
+=================
+*/
+void SCR_FillAngleYaw( float start, float end, float viewangle, float y, float height, const float *color ) {
+	float x, width, fovscale;
+	fovscale=tan(DEG2RAD(cgamefov[0]/2));
+	x = SCREEN_WIDTH/2+tan(DEG2RAD(viewangle+start))/fovscale*SCREEN_WIDTH/2;
+	width = abs(SCREEN_WIDTH*(tan(DEG2RAD(viewangle+end))-tan(DEG2RAD(viewangle+start)))/(fovscale*2))+1;	
+
+	re.SetColor( color );
+	SCR_AdjustFrom640( &x, &y, &width, &height );
+	re.DrawStretchPic( x, y, width, height, 0, 0, 0, 0, cls.whiteShader );
+	re.SetColor( NULL );
+}
+
+void SCR_MarkAnglePitch( float angle, float height, float viewangle, float x, float width, const float *color ) {
+	float y, fovscale;
+
+	if (-cl.snap.ps.viewangles[PITCH]+angle > cgamefov[1]/2+5) return;
+	fovscale=tan(DEG2RAD(cgamefov[1]/2));
+	y = SCREEN_HEIGHT/2+tan(DEG2RAD(viewangle+angle))/fovscale*SCREEN_HEIGHT/2;
+
+	re.SetColor( color );
+	SCR_AdjustFrom640( &x, &y, &width, &height );
+	re.DrawStretchPic( x-width/2, y-height/2, width, height, 0, 0, 0, 0, cls.whiteShader );
+	re.SetColor( NULL );
+}
+
+/*
+================
 SCR_DrawNamedPic
 
 Coordinates are 640*480 virtual values
@@ -519,6 +549,7 @@ void SCR_DrawScreenField( stereoFrame_t stereoFrame ) {
 		case CA_ACTIVE:
 			CL_CGameRendering( stereoFrame );
 			SCR_DrawDemoRecording();
+			HUD_Draw (); //iodfe snap hud
 			break;
 		}
 	}

@@ -2428,6 +2428,7 @@ void CL_Init( void ) {
 	CL_InitRef();
 
 	SCR_Init ();
+	HUD_Init (); // snap hud
 
 	DL_Init();	// Cgg - client download
 
