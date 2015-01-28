@@ -947,6 +947,10 @@
 				>
 			</File>
 			<File
+				RelativePath="client\cl_hud_snap.c"
+				>
+			</File>
+			<File
 				RelativePath="client\cl_input.c"
 				>
 				<FileConfiguration
