@@ -132,6 +132,8 @@ typedef struct {
 	// and teleport direction changes
 	vec3_t		viewangles;
 
+	snappingHud_t	snappinghud;
+
 	int			serverId;			// included in each client message so the server
 												// can tell if it is for a prior map_restart
 	// big stuff at end of structure so most offsets are 15 bits or less

@@ -26,6 +26,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #define	REF_API_VERSION		8
 
+extern vec2_t cgamefov;
+
 //
 // these are the functions exported by the refresh module
 //
