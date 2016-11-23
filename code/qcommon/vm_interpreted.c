@@ -21,6 +21,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 #include "vm_local.h"
 
+#ifdef _WIN32
+#include <Windows.h>
+#endif
+
 #ifdef DEBUG_VM // bk001204
 static char	*opnames[256] = {
 	"OP_UNDEF", 
@@ -160,6 +164,17 @@ void VM_PrepareInterpreter( vm_t *vm, vmHeader_t *header ) {
 	int		*codeBase;
 
 	vm->codeBase = Hunk_Alloc( vm->codeLength*4, h_high );			// we're now int aligned
+
+#ifdef _WIN32
+	PDWORD prevProt = NULL;
+
+	/* enable executable stack so we can compile with DEP */
+	if (!VirtualProtectEx(GetCurrentProcess(), &vm->codeBase, vm->codeLength * 4, PAGE_EXECUTE_READWRITE, prevProt))
+	{
+		Com_Error(ERR_DROP, "Error setting read/write/execute permissions on VM stack\n");
+	}
+#endif
+
 //	memcpy( vm->codeBase, (byte *)header + header->codeOffset, vm->codeLength );
 
 	// we don't need to translate the instructions, but we still need
