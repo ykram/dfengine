@@ -27,7 +27,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // A user mod should never modify this file
 
 // Cgg
-#define	Q3_VERSION		"dfengine 1.08f"
+#define	Q3_VERSION		"dfengine 1.08g"
 // 1.32 released 7-10-2002
 #define Q3_WINDOW_TITLE Q3_VERSION
 // !Cgg
