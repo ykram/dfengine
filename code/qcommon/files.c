@@ -251,6 +251,7 @@ static	cvar_t		*fs_debug;
 static	cvar_t		*fs_homepath;
 static	cvar_t		*fs_basepath;
 static	cvar_t		*fs_basegame;
+static	cvar_t		*fs_include; // Cyberstorm - Optional extra path.
 static	cvar_t		*fs_cdpath;
 static	cvar_t		*fs_copyfiles;
 static	cvar_t		*fs_gamedirvar;
@@ -2882,6 +2883,7 @@ static void FS_Startup( const char *gameName ) {
 	fs_cdpath = Cvar_Get ("fs_cdpath", Sys_DefaultCDPath(), CVAR_INIT );
 	fs_basepath = Cvar_Get ("fs_basepath", Sys_DefaultInstallPath(), CVAR_INIT );
 	fs_basegame = Cvar_Get ("fs_basegame", "", CVAR_INIT );
+	fs_include = Cvar_Get("fs_include", "", CVAR_INIT); // Cyberstorm
   homePath = Sys_DefaultHomePath();
   if (!homePath || !homePath[0]) {
 		homePath = fs_basepath->string;
@@ -2897,6 +2899,11 @@ static void FS_Startup( const char *gameName ) {
 	if (fs_basepath->string[0]) {
 		FS_AddGameDirectory( fs_basepath->string, gameName );
 	}
+	// Cyberstorm
+	if (fs_include->string[0]) {
+		FS_AddGameDirectory(fs_basepath->string, fs_include->string);
+	}
+	// !Cyberstorm
   // fs_homepath is somewhat particular to *nix systems, only add if relevant
   // NOTE: same filtering below for mods and basegame
 	if (fs_basepath->string[0] && Q_stricmp(fs_homepath->string,fs_basepath->string)) {
